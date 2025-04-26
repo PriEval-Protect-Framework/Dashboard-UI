@@ -1,0 +1,96 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply font-sans text-gray-800 dark:text-gray-100;
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-semibold leading-tight;
+  }
+  
+  h1 {
+    @apply text-3xl md:text-4xl;
+  }
+  
+  h2 {
+    @apply text-2xl md:text-3xl;
+  }
+  
+  h3 {
+    @apply text-xl md:text-2xl;
+  }
+  
+  p {
+    @apply leading-relaxed;
+  }
+}
+
+@layer components {
+  .card {
+    @apply bg-white/80 dark:bg-gray-800/80 backdrop-blur-lg rounded-xl shadow-lg border border-gray-100 dark:border-gray-700 p-6 transition-all duration-300;
+  }
+  
+  .btn {
+    @apply px-4 py-2 rounded-lg font-medium transition duration-200 transform hover:scale-[1.02] active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-opacity-50;
+  }
+  
+  .btn-primary {
+    @apply btn bg-primary-400 text-white focus:ring-primary-300 hover:bg-primary-500;
+  }
+  
+  .btn-success {
+    @apply btn bg-success-400 text-white focus:ring-success-300 hover:bg-success-500;
+  }
+  
+  .btn-warning {
+    @apply btn bg-warning-400 text-white focus:ring-warning-300 hover:bg-warning-500;
+  }
+  
+  .btn-danger {
+    @apply btn bg-danger-400 text-white focus:ring-danger-300 hover:bg-danger-500;
+  }
+  
+  .input-field {
+    @apply w-full px-4 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-400 focus:border-transparent transition duration-200;
+  }
+  
+  .glassmorphism {
+    @apply bg-white/40 dark:bg-gray-800/40 backdrop-blur-md border border-white/20 dark:border-gray-700/20 shadow-lg;
+  }
+  
+  /* Background pattern */
+  .bg-pattern {
+    background-color: var(--bg-color, #f9fafb);
+    background-image: radial-gradient(var(--dot-color, #e5e7eb) 1px, transparent 1px);
+    background-size: 24px 24px;
+  }
+  
+  .dark .bg-pattern {
+    --bg-color: #111827;
+    --dot-color: #374151;
+  }
+  
+  /* Animation utilities */
+  .animate-delay-100 {
+    animation-delay: 100ms;
+  }
+  
+  .animate-delay-200 {
+    animation-delay: 200ms;
+  }
+  
+  .animate-delay-300 {
+    animation-delay: 300ms;
+  }
+  
+  .animate-delay-400 {
+    animation-delay: 400ms;
+  }
+  
+  .animate-delay-500 {
+    animation-delay: 500ms;
+  }
+}
