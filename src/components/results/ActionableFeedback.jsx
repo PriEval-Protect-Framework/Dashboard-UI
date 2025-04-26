@@ -23,29 +23,28 @@ const FeedbackItem = ({ icon, text, index }) => {
 }
 
 const ActionableFeedback = ({ feedbackItems = [] }) => {
-  // Map feedback text to corresponding icons
-  const getIcon = (text) => {
-    if (text.toLowerCase().includes('encryption')) {
-      return <FaLock className="mt-0.5 text-primary-400" />
-    } else if (text.toLowerCase().includes('anonymization')) {
-      return <FaUserShield className="mt-0.5 text-success-400" />
-    } else if (text.toLowerCase().includes('distribution') || text.toLowerCase().includes('storage')) {
-      return <FaServer className="mt-0.5 text-warning-400" />
-    } else if (text.toLowerCase().includes('gdpr') || text.toLowerCase().includes('compliance')) {
+  // Randomly return one of the icons
+  const getIcon = () => {
+    const random = Math.random()
+    if (random < 0.25) {
       return <FaExclamationTriangle className="mt-0.5 text-danger-400" />
+    } else if (random < 0.5) {
+      return <FaLock className="mt-0.5 text-primary-400" />
+    } else if (random < 0.75) {
+      return <FaUserShield className="mt-0.5 text-success-400" />
     } else {
-      return <FaExclamationTriangle className="mt-0.5 text-gray-400" />
+      return <FaServer className="mt-0.5 text-warning-400" />
     }
   }
-  
+
   return (
     <Card title="Actionable Feedback" animationType="fadeInUp" delay={0.5}>
       <div className="space-y-3">
         {feedbackItems.length > 0 ? (
           feedbackItems.map((item, index) => (
             <FeedbackItem 
-              key={index} 
-              icon={getIcon(item)} 
+              key={`feedback-${index}`} 
+              icon={getIcon()} 
               text={item}
               index={index}
             />

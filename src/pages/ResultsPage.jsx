@@ -11,18 +11,23 @@ import ActionableFeedback from '../components/results/ActionableFeedback'
 import { useData } from '../context/DataContext'
 
 const ResultsPage = () => {
-  const { evaluationResults, resetData, startEvaluation } = useData()
+  const { evaluationResults, resetData, startEvaluation, isLoading } = useData();
   const navigate = useNavigate()
   
-  // If no results available, redirect to input page
   useEffect(() => {
-    if (!evaluationResults) {
-      startEvaluation()
+    // Only call startEvaluation if evaluationResults is null and it's not already loading
+    if (!evaluationResults && !isLoading) {
+      startEvaluation(() => {
+        // This callback will be executed after evaluation is complete
+        // No need to navigate here as we're already on the results page
+      });
     }
-  }, [evaluationResults, startEvaluation])
+  }, [evaluationResults, startEvaluation, isLoading]); // Add isLoading to dependencies
+  
   
   const handleGoBack = () => {
     navigate('/')
+    resetData()
   }
   
   if (!evaluationResults) {
@@ -66,7 +71,7 @@ const ResultsPage = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-10">
         <ComplianceScore score={evaluationResults.complianceScore} />
         <EncryptionType type={evaluationResults.encryptionType} />
-        <GDPRReport data={evaluationResults.gdprCompliance} />
+        <GDPRReport data={evaluationResults.gdprCompliance} llmReport={evaluationResults.llmReport} />
         <DataDistribution data={evaluationResults.dataDistribution} />
         <PrivacyMetrics metrics={evaluationResults.privacyMetrics} />
         <ActionableFeedback feedbackItems={evaluationResults.feedbackItems} />
@@ -79,7 +84,7 @@ const ResultsPage = () => {
         transition={{ delay: 1.5 }}
       >
         <button
-          onClick={resetData}
+          onClick={handleGoBack}
           className="btn btn-primary px-6 py-2"
         >
           Start New Evaluation

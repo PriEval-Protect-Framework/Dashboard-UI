@@ -8,7 +8,7 @@ import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Toolti
 // Register ChartJS components
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend)
 
-const GDPRReport = ({ data }) => {
+const GDPRReport = ({ data, llmReport }) => {
   const [isExpanded, setIsExpanded] = useState(false)
   
   const chartData = {
@@ -112,7 +112,6 @@ const GDPRReport = ({ data }) => {
             <span>Textual Compliance Report</span>
             {isExpanded ? <FaChevronUp /> : <FaChevronDown />}
           </button>
-          
           {isExpanded && (
             <motion.div
               className="mt-3 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-3 text-sm"
@@ -123,28 +122,18 @@ const GDPRReport = ({ data }) => {
               <p className="text-gray-600 dark:text-gray-400 mb-2">
                 The policy document was analyzed against key GDPR articles with the following findings:
               </p>
-              
-              <ul className="space-y-2">
-                <li className="text-success-600 dark:text-success-400">
-                  ✓ Strong compliance with Articles 12-14 (Transparency and Information)
-                </li>
-                <li className="text-success-600 dark:text-success-400">
-                  ✓ Adequate coverage of Articles 15-20 (Individual Rights)
-                </li>
-                <li className="text-warning-600 dark:text-warning-400">
-                  ! Partial compliance with Articles 25-32 (Security and Privacy by Design)
-                </li>
-                <li className="text-danger-600 dark:text-danger-400">
-                  ✗ Insufficient coverage of Articles 33-34 (Breach Notification)
-                </li>
-              </ul>
-              
+
+              <div className="text-gray-600 dark:text-gray-400 whitespace-pre-wrap text-sm">
+                {llmReport || 'No detailed LLM report was returned.'}
+              </div>
+
               <button className="mt-3 inline-flex items-center text-primary-600 dark:text-primary-400 text-sm hover:underline">
                 <FaSearch className="mr-1" size={12} />
                 View Legal Mapping
               </button>
             </motion.div>
           )}
+
         </div>
       </div>
     </Card>

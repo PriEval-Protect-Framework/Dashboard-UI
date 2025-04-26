@@ -21,10 +21,11 @@ const InputPage = () => {
   }, [policyFile, dataFile])
   
   const handleStartEvaluation = () => {
-    startEvaluation()
-    navigate('/results')
-  }
-  
+    startEvaluation(() => {
+      navigate('/results');
+    });
+  };
+      
   return (
     <div className="container mx-auto max-w-6xl">
       <motion.div
