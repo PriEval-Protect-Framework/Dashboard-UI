@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { motion } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
 import { FaArrowRight } from 'react-icons/fa'
@@ -7,9 +7,10 @@ import DataUpload from '../components/input/DataUpload'
 import { useData } from '../context/DataContext'
 
 const InputPage = () => {
-  const { policyFile, dataFile, startEvaluation, isLoading } = useData()
+  const { policyFile, dataFile, startEvaluation, isLoading, error } = useData()
   const [isPulseAnimating, setIsPulseAnimating] = useState(false)
   const navigate = useNavigate()
+  const isProcessingRef = useRef(false)
   
   // Enable pulse animation on the button when both files are uploaded
   useEffect(() => {
@@ -21,10 +22,23 @@ const InputPage = () => {
   }, [policyFile, dataFile])
   
   const handleStartEvaluation = () => {
+    // Prevent multiple clicks and requests
+    if (isLoading || isProcessingRef.current) {
+      console.log("Processing already in progress, ignoring click");
+      return;
+    }
+    
+    // Set processing flag to prevent duplicate calls
+    isProcessingRef.current = true;
+    console.log("Starting evaluation from InputPage");
+    
     startEvaluation(() => {
+      console.log("Evaluation complete, navigating to results");
       navigate('/results');
+      // Reset processing flag after navigation
+      isProcessingRef.current = false;
     });
-  };
+  }
       
   return (
     <div className="container mx-auto max-w-6xl">
@@ -46,6 +60,13 @@ const InputPage = () => {
         <DataUpload />
       </div>
       
+      {error && (
+        <div className="bg-red-100 dark:bg-red-900/20 border border-red-400 dark:border-red-700 text-red-700 dark:text-red-400 px-4 py-3 rounded-md mb-6">
+          <p className="font-medium">Error</p>
+          <p className="text-sm">{error}</p>
+        </div>
+      )}
+      
       <motion.div
         className="text-center mt-6"
         initial={{ opacity: 0 }}
@@ -54,10 +75,10 @@ const InputPage = () => {
       >
         <button
           onClick={handleStartEvaluation}
-          disabled={!policyFile || !dataFile}
+          disabled={!policyFile || !dataFile || isLoading || isProcessingRef.current}
           className={`
             btn btn-primary px-8 py-3 text-lg ${isPulseAnimating ? 'animate-pulse-slow ring-4 ring-primary-300 dark:ring-primary-700 ring-opacity-50' : ''}
-            ${(!policyFile || !dataFile) ? 'opacity-50 cursor-not-allowed' : ''}
+            ${(!policyFile || !dataFile || isLoading || isProcessingRef.current) ? 'opacity-50 cursor-not-allowed' : ''}
           `}
         >
           {isLoading ? (
@@ -84,7 +105,7 @@ const InputPage = () => {
           ) : (!dataFile) ? (
             'Please upload a data sample'
           ) : (
-            'Ready to evaluate compliance'
+            'Ready to evaluate privacy metrics and GDPR compliance'
           )}
         </p>
       </motion.div>
