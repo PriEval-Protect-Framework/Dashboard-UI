@@ -156,19 +156,6 @@ const ResultsPage = () => {
         animate={{ opacity: 1 }}
         transition={{ delay: 1 }}
       >
-        <button
-          onClick={() => {
-            // Reset the hasStartedEvaluation flag when manually initiating a new evaluation
-            hasStartedEvaluation.current = false;
-            resetData();
-            startEvaluation(() => {
-              console.log("Re-analysis complete");
-            });
-          }}
-          className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-md font-medium transition-colors shadow-lg mr-4"
-        >
-          Re-analyze with anonymized dataset
-        </button>
         
         <button
           onClick={handleGoBack}

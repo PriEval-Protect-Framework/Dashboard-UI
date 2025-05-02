@@ -70,41 +70,45 @@ export function DataProvider({ children }) {
     }
   
     try {
-      console.log("Starting evaluation process...");
+      console.log("Starting evaluation process with parallel requests...");
       
-      // Step 1: Process policy file for GDPR evaluation
-      console.log("Step 1: Processing GDPR evaluation");
+      // Prepare form data for both API requests
       const policyFormData = new FormData();
       policyFormData.append("policy", policyFile);
       
-      const gdprResponse = await fetch('http://127.0.0.1:8001/gdpr/evaluate', {
-        method: 'POST',
-        body: policyFormData
-      });
-      
-      if (!gdprResponse.ok) {
-        throw new Error(`GDPR API error: ${gdprResponse.status} ${gdprResponse.statusText}`);
-      }
-      
-      const gdprData = await gdprResponse.json();
-      console.log("GDPR evaluation complete", gdprData);
-      
-      // Step 2: Process data file for privacy metrics
-      console.log("Step 2: Processing privacy metrics");
       const privacyFormData = new FormData();
       privacyFormData.append("file", dataFile);
       
-      const privacyResponse = await fetch('http://127.0.0.1:8000/calcul', {
-        method: 'POST',
-        body: privacyFormData
-      });
+      // Make both API requests in parallel
+      const [gdprResponse, privacyResponse] = await Promise.all([
+        fetch('http://127.0.0.1:8001/gdpr/evaluate', {
+          method: 'POST',
+          body: policyFormData
+        }),
+        fetch('http://127.0.0.1:8000/calcul', {
+          method: 'POST',
+          body: privacyFormData
+        })
+      ]);
+      
+      // Check responses for errors
+      if (!gdprResponse.ok) {
+        throw new Error(`GDPR API error: ${gdprResponse.status} ${gdprResponse.statusText}`);
+      }
       
       if (!privacyResponse.ok) {
         throw new Error(`Privacy metrics API error: ${privacyResponse.status} ${privacyResponse.statusText}`);
       }
       
-      const privacyMetrics = await privacyResponse.json();
-      console.log("Privacy metrics calculation complete", privacyMetrics);
+      // Parse response data in parallel
+      const [gdprData, privacyMetrics] = await Promise.all([
+        gdprResponse.json(),
+        privacyResponse.json()
+      ]);
+      
+      console.log("Both API requests completed successfully");
+      console.log("GDPR evaluation data:", gdprData);
+      console.log("Privacy metrics data:", privacyMetrics);
       
       // Generate random values for data that's not from APIs
       const encryptionTypes = ['Asymmetric', 'Symmetric', 'Hybrid', 'None'];
@@ -196,7 +200,6 @@ export function DataProvider({ children }) {
     }
   }, [policyFile, dataFile, isRequesting]);
   
-
   const resetData = useCallback(() => {
     setPolicyFile(null)
     setDataFile(null)
