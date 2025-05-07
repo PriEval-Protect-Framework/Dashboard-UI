@@ -13,6 +13,11 @@ export function DataProvider({ children }) {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState(null)
   const [isRequesting, setIsRequesting] = useState(false)
+  
+  // Keep state variables for encryption and distribution type
+  // but don't send them to endpoints
+  const [encryptionType, setEncryptionType] = useState('Asymmetric') // Default value
+  const [distributionType, setDistributionType] = useState('Centralized') // Default value
 
   const handlePolicyUpload = (file) => {
     setPolicyFile(file)
@@ -71,13 +76,20 @@ export function DataProvider({ children }) {
   
     try {
       console.log("Starting evaluation process with parallel requests...");
+      console.log("Using encryption type:", encryptionType);
+      console.log("Using distribution type:", distributionType);
       
       // Prepare form data for both API requests
+      // Remove encryption_type and distribution_type parameters
       const policyFormData = new FormData();
       policyFormData.append("policy", policyFile);
+      // Removed: policyFormData.append("encryption_type", encryptionType);
+      // Removed: policyFormData.append("distribution_type", distributionType);
       
       const privacyFormData = new FormData();
       privacyFormData.append("file", dataFile);
+      // Removed: privacyFormData.append("encryption_type", encryptionType);
+      // Removed: privacyFormData.append("distribution_type", distributionType);
       
       // Make both API requests in parallel
       const [gdprResponse, privacyResponse] = await Promise.all([
@@ -110,16 +122,15 @@ export function DataProvider({ children }) {
       console.log("GDPR evaluation data:", gdprData);
       console.log("Privacy metrics data:", privacyMetrics);
       
-      // Generate random values for data that's not from APIs
-      const encryptionTypes = ['Asymmetric', 'Symmetric', 'Hybrid', 'None'];
-      const encryptionType = encryptionTypes[Math.floor(Math.random() * encryptionTypes.length)];
+      // Use the selected encryption and distribution types from state
+      // instead of generating random values
       const gdprBelowThreshold = Math.floor(3 + Math.random() * 4);
-      
       const complianceScore = gdprData.score.weighted_score || Math.floor(30 + Math.random() * 70);
   
-      const isDistributed = Math.random() > 0.5;
+      // Use the selected distribution type instead of randomizing
+      const isDistributed = distributionType !== 'Centralized';
       const distributionData = {
-        type: isDistributed ? (Math.random() > 0.5 ? 'Federated' : 'Distributed') : 'Centralized',
+        type: distributionType,
         nodes: isDistributed ? Math.floor(5 + Math.random() * 20) : 1,
         variance: isDistributed ? Math.random() * 0.5 : 0,
         dominantNode: isDistributed ? Math.floor(Math.random() * 100) : 100,
@@ -130,10 +141,10 @@ export function DataProvider({ children }) {
       const feedbackItems = [];
       if (gdprData.score.weighted_score < 80) feedbackItems.push('Improve GDPR coverage in documentation');
       if (encryptionType === 'None' || encryptionType === 'Symmetric') feedbackItems.push('Upgrade encryption method to asymmetric or hybrid');
-      if (distributionData.type === 'Centralized') feedbackItems.push('Consider a more distributed data storage approach');
+      if (distributionType === 'Centralized') feedbackItems.push('Consider a more distributed data storage approach');
       
       // Add feedback based on privacy metrics
-      if (privacyMetrics.k_anonymity < 2) feedbackItems.push('Increase k-anonymity level to at least 2');
+      if (privacyMetrics.k_anonymity < 2) feedbackItems.push('Implement data minimization techniques');
       if (privacyMetrics.l_diversity < 1) feedbackItems.push('Implement l-diversity measures');
       if (privacyMetrics.adversary_success_rate.average_success_rate > 0.8) feedbackItems.push('Reduce adversary success rate through additional anonymization');
       
@@ -168,7 +179,7 @@ export function DataProvider({ children }) {
       console.log("Setting evaluation results...");
       setEvaluationResults({
         complianceScore,
-        encryptionType,
+        encryptionType, // Use the user-selected encryption type
         gdprCompliance: {
           fullyCovered: gdprData.score.fully_covered,
           partiallyCovered: gdprData.score.partially_covered,
@@ -177,7 +188,7 @@ export function DataProvider({ children }) {
           weightedScore: gdprData.score.weighted_score,
           coverageScore: gdprData.score.coverage_score
         },
-        dataDistribution: distributionData,
+        dataDistribution: distributionData, // Use the user-selected distribution type
         privacyMetrics: organizedPrivacyMetrics, // Organized metrics from API
         feedbackItems: [...llmRecommendations, ...feedbackItems],
         llmReport: gdprData.llm_report
@@ -198,7 +209,7 @@ export function DataProvider({ children }) {
       setIsLoading(false);
       setIsRequesting(false);
     }
-  }, [policyFile, dataFile, isRequesting]);
+  }, [policyFile, dataFile, isRequesting, encryptionType, distributionType]); // Keep dependencies
   
   const resetData = useCallback(() => {
     setPolicyFile(null)
@@ -207,6 +218,8 @@ export function DataProvider({ children }) {
     setDataPreview([])
     setEvaluationResults(null)
     setError(null)
+    // We don't reset encryption and distribution types here
+    // so they persist between evaluations
   }, [])
 
   return (
@@ -218,6 +231,10 @@ export function DataProvider({ children }) {
       evaluationResults,
       isLoading,
       error,
+      encryptionType, // Keep exposing state variables
+      setEncryptionType,
+      distributionType,
+      setDistributionType,
       handlePolicyUpload,
       handleDataUpload,
       startEvaluation,

@@ -1,25 +1,43 @@
 import { useState, useEffect, useRef } from 'react'
 import { motion } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
-import { FaArrowRight } from 'react-icons/fa'
+import { FaArrowRight, FaExclamationCircle } from 'react-icons/fa'
 import PolicyUpload from '../components/input/PolicyUpload'
 import DataUpload from '../components/input/DataUpload'
+import PrivacySettings from '../components/input/PrivacySettings' // Import from correct path
 import { useData } from '../context/DataContext'
 
 const InputPage = () => {
-  const { policyFile, dataFile, startEvaluation, isLoading, error } = useData()
+  const { 
+    policyFile, 
+    dataFile, 
+    startEvaluation, 
+    isLoading, 
+    error,
+    encryptionType,
+    distributionType
+  } = useData()
+  
   const [isPulseAnimating, setIsPulseAnimating] = useState(false)
   const navigate = useNavigate()
   const isProcessingRef = useRef(false)
   
-  // Enable pulse animation on the button when both files are uploaded
+  // Check if all required data is available before enabling the button
+  const isFormComplete = policyFile && 
+                         dataFile && 
+                         encryptionType && 
+                         distributionType &&
+                         !isLoading && 
+                         !isProcessingRef.current
+  
+  // Enable pulse animation on the button when all requirements are met
   useEffect(() => {
-    if (policyFile && dataFile) {
+    if (isFormComplete) {
       setIsPulseAnimating(true)
     } else {
       setIsPulseAnimating(false)
     }
-  }, [policyFile, dataFile])
+  }, [isFormComplete])
   
   const handleStartEvaluation = () => {
     // Prevent multiple clicks and requests
@@ -28,9 +46,17 @@ const InputPage = () => {
       return;
     }
     
+    // Validate all required inputs
+    if (!policyFile || !dataFile || !encryptionType || !distributionType) {
+      console.log("Form incomplete, cannot start evaluation");
+      return;
+    }
+    
     // Set processing flag to prevent duplicate calls
     isProcessingRef.current = true;
     console.log("Starting evaluation from InputPage");
+    console.log("Using encryption type:", encryptionType);
+    console.log("Using distribution type:", distributionType);
     
     startEvaluation(() => {
       console.log("Evaluation complete, navigating to results");
@@ -39,6 +65,22 @@ const InputPage = () => {
       isProcessingRef.current = false;
     });
   }
+  
+  // Generate validation message based on missing inputs
+  const getValidationMessage = () => {
+    const missing = [];
+    
+    if (!policyFile) missing.push('policy document');
+    if (!dataFile) missing.push('data sample');
+    if (!encryptionType) missing.push('encryption type');
+    if (!distributionType) missing.push('distribution type');
+    
+    if (missing.length === 0) {
+      return 'Ready to evaluate privacy metrics and GDPR compliance';
+    } else {
+      return `Please provide: ${missing.join(', ')}`;
+    }
+  };
       
   return (
     <div className="container mx-auto max-w-6xl">
@@ -60,6 +102,9 @@ const InputPage = () => {
         <DataUpload />
       </div>
       
+      {/* Add the PrivacySettings component */}
+      <PrivacySettings />
+      
       {error && (
         <div className="bg-red-100 dark:bg-red-900/20 border border-red-400 dark:border-red-700 text-red-700 dark:text-red-400 px-4 py-3 rounded-md mb-6">
           <p className="font-medium">Error</p>
@@ -70,15 +115,22 @@ const InputPage = () => {
       <motion.div
         className="text-center mt-6"
         initial={{ opacity: 0 }}
-        animate={{ opacity: policyFile || dataFile ? 1 : 0.5 }}
+        animate={{ opacity: isFormComplete ? 1 : 0.5 }}
         transition={{ duration: 0.3 }}
       >
+        {!isFormComplete && (
+          <div className="bg-blue-100 dark:bg-blue-900/20 border border-blue-400 dark:border-blue-700 text-blue-700 dark:text-blue-400 px-4 py-3 rounded-md mb-4 inline-flex items-center">
+            <FaExclamationCircle className="mr-2" />
+            <p className="text-sm">All settings are required before starting evaluation</p>
+          </div>
+        )}
+        
         <button
           onClick={handleStartEvaluation}
-          disabled={!policyFile || !dataFile || isLoading || isProcessingRef.current}
+          disabled={!isFormComplete}
           className={`
             btn btn-primary px-8 py-3 text-lg ${isPulseAnimating ? 'animate-pulse-slow ring-4 ring-primary-300 dark:ring-primary-700 ring-opacity-50' : ''}
-            ${(!policyFile || !dataFile || isLoading || isProcessingRef.current) ? 'opacity-50 cursor-not-allowed' : ''}
+            ${!isFormComplete ? 'opacity-50 cursor-not-allowed' : ''}
           `}
         >
           {isLoading ? (
@@ -98,15 +150,7 @@ const InputPage = () => {
         </button>
         
         <p className="mt-3 text-sm text-gray-500 dark:text-gray-400">
-          {(!policyFile && !dataFile) ? (
-            'Please upload both policy document and data sample'
-          ) : (!policyFile) ? (
-            'Please upload a policy document'
-          ) : (!dataFile) ? (
-            'Please upload a data sample'
-          ) : (
-            'Ready to evaluate privacy metrics and GDPR compliance'
-          )}
+          {getValidationMessage()}
         </p>
       </motion.div>
     </div>
